@@ -16,6 +16,6 @@ public class Main {
         StoreService.addProduct(jeans);
 
         System.out.println("Категории");
-        StoreService.findProductsByCategory("Одежда").forEach(System.out::println);
+        StoreService.findByCategory("Одежда").forEach(System.out::println);
         }
     }

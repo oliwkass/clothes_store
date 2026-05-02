@@ -4,6 +4,7 @@ import org.example.model.Product;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class StoreService {
     // Используем List — это интерфейс, хороший тон в Java
@@ -24,20 +25,15 @@ public class StoreService {
         }
     }
 
-    public List<Product> findProductsByCategory(String category) {
-        // 1. Создаем пустой список для результатов
-        List<Product> foundProducts = new ArrayList<>();
+    public List<Product> findByCategory(String category) {
+        List<Product> result = products.stream()
+                .filter(p -> p.getCategory().equalsIgnoreCase(category))
+                .collect(Collectors.toList());
 
-        // 2. Цикл for-each: "для каждого Product p в списке products"
-        for (Product p : products) {
-            // 3. Сравниваем категории.
-            // В Java строки сравниваются через .equals(), а не через ==
-            if (p.getCategory().equalsIgnoreCase(category)) {
-                foundProducts.add(p);
-            }
+        if (result.isEmpty()) {
+            System.out.println("Информация: По категории '" + category + "' товаров не найдено.");
         }
 
-        // 4. Возвращаем результат
-        return foundProducts;
+        return result;
     }
 }
