@@ -11,6 +11,7 @@ public class Main {
 
         Product hoodie = new Product(1L, "Худи с принтом", "Одежда", 49.99, "L", 1,"черная");
         Product jeans = new Product(2L, "Jeans Levis","Одежда", 39.99, "33", 1, "синий");
+        Product TShirt = new Product(4L, "T-Shirt", "Polo", 9.99,"XXL", 1,"белый");
 
         StoreService.addProduct(hoodie);
         StoreService.addProduct(jeans);
