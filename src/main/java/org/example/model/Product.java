@@ -36,6 +36,7 @@ public class Product {
     public double getPrice() {
         return price;
     }
+    public Long getId(){return id;}
 
     public String getCategory() {
         return category;

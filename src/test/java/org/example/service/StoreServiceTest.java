@@ -35,4 +35,16 @@ class StoreServiceTest {
         // ПРОВЕРКА: теперь мы ОЖИДАЕМ, что список будет пустым
         assertTrue(result.isEmpty(), "Список должен быть пустым, если категория не найдена");
     }
+
+    @Test
+    void testDeleteProduct() {
+        StoreService service = new StoreService();
+        Product p = new Product(10L, "Джинсы", "Одежда", 25.99,"33", 1,"синий");
+        service.addProduct(p);
+
+        boolean isDeleted = service.deleteProductById(10L);
+
+        assertTrue(isDeleted, "Метод должен вернуть true при успешном удалении");
+        assertTrue(service.findByCategory("Одежда").isEmpty(), "Список должен быть пуст после удаления");
+    }
 }

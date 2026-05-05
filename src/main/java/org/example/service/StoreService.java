@@ -36,4 +36,14 @@ public class StoreService {
 
         return result;
     }
+
+    public boolean deleteProductById(Long id) {
+        boolean removed = products.removeIf(p -> p.getId().equals(id));
+        if (removed) {
+            System.out.println("✅ Товар с ID " + id + " успешно удален.");
+        } else {
+            System.out.println("❌ Товар с ID " + id + " не найден.");
+        }
+        return removed;
+    }
 }
