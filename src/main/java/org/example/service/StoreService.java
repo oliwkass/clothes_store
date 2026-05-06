@@ -1,11 +1,13 @@
 package org.example.service;
 
 import org.example.model.Product;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Service
 public class StoreService {
     // Используем List — это интерфейс, хороший тон в Java
     private List<Product> products = new ArrayList<>();
@@ -45,5 +47,11 @@ public class StoreService {
             System.out.println("❌ Товар с ID " + id + " не найден.");
         }
         return removed;
+    }
+
+    @jakarta.annotation.PostConstruct
+    public void initData() {
+        addProduct(new Product(1L, "Футболка", "Одежда", 1500.0, "L", 10, "Белый"));
+        addProduct(new Product(2L, "Джинсы", "Одежда", 3500.0, "M", 5, "Синий"));
     }
 }
