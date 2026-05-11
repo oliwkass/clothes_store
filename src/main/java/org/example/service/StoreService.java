@@ -1,57 +1,57 @@
 package org.example.service;
 
 import org.example.model.Product;
+import org.example.repository.ProductRepository;
 import org.springframework.stereotype.Service;
+import jakarta.annotation.PostConstruct;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class StoreService {
-    // Используем List — это интерфейс, хороший тон в Java
-    private List<Product> products = new ArrayList<>();
 
-    // Метод для добавления товара
-    public void addProduct(Product product) {
-        products.add(product);
-        System.out.println("Товар добавлен: " + product.getName());
+    // 1. Оставляем только репозиторий. Список products здесь больше не нужен!
+    private final ProductRepository productRepository;
+
+
+    // 2. Добавляем правильный конструктор для связи со Spring
+    public StoreService(ProductRepository productRepository) {
+        this.productRepository = productRepository;
     }
 
-    // Метод для просмотра всех товаров
-    public void displayAllProducts() {
-        if (products.isEmpty()) {
-            System.out.println("Магазин пуст.");
-        } else {
-            products.forEach(System.out::println);
-        }
+    public List<Product> getAllProducts() {
+        // Теперь просим данные у репозитория
+        return productRepository.findAll();
+    }
+
+    public void addProduct(Product product) {
+        Product savedProduct = productRepository.save(product);
+        System.out.println("Товар добавлен в базу с ID: " + savedProduct.getId());
     }
 
     public List<Product> findByCategory(String category) {
-        List<Product> result = products.stream()
-                .filter(p -> p.getCategory().equalsIgnoreCase(category))
-                .collect(Collectors.toList());
-
-        if (result.isEmpty()) {
-            System.out.println("Информация: По категории '" + category + "' товаров не найдено.");
-        }
-
-        return result;
+        // Делегируем поиск репозиторию
+        return productRepository.findByCategoryIgnoreCase(category);
     }
 
     public boolean deleteProductById(Long id) {
-        boolean removed = products.removeIf(p -> p.getId().equals(id));
-        if (removed) {
+        // Сначала проверяем существование
+        boolean exists = productRepository.findAll().stream()
+                .anyMatch(p -> p.getId().equals(id));
+
+        if (exists) {
+            productRepository.deleteById(id);
             System.out.println("✅ Товар с ID " + id + " успешно удален.");
+            return true;
         } else {
             System.out.println("❌ Товар с ID " + id + " не найден.");
+            return false;
         }
-        return removed;
     }
 
-    @jakarta.annotation.PostConstruct
+    @PostConstruct
     public void initData() {
-        addProduct(new Product(1L, "Футболка", "Одежда", 1500.0, "L", 10, "Белый"));
-        addProduct(new Product(2L, "Джинсы", "Одежда", 3500.0, "M", 5, "Синий"));
+        addProduct(new Product(null, "Футболка", "Одежда", 1500.0, "L", 10, "Белый"));
+        addProduct(new Product(null, "Джинсы", "Одежда", 3500.0, "M", 5, "Синий"));
     }
 }

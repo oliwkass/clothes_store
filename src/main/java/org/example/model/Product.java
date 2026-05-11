@@ -1,13 +1,37 @@
 package org.example.model;
 
+import jakarta.persistence.*;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.PositiveOrZero;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Entity // 1. Помечаем как сущность базы данных
+@Table(name = "products") // 2. Называем таблицу
+
 public class Product {
+
+    @Id // 3. Указываем, что это первичный ключ (ID)
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // 4. База сама будет генерировать ID (1, 2, 3...)
     private Long id;          // Уникальный номер товара
-    private String name;      // Название (например, "Черная футболка")
+
+    @NotBlank(message = "Название не может быть пустым")
+    private String name;
+
+    @Min(value = 0, message = "Цена не может быть меньше нуля")
+    private Double price;
+
+    @PositiveOrZero(message = "Количество на складе не может быть отрицательным")
+    private Integer stockQuantity;
+
     private String category;  // Категория (Одежда, Обувь)
-    private double price;     // Цена
     private String size;      // Размер (S, M, L, XL)
     private String color;      // Цвет товара
-    private int stockQuantity; // Количество на складе
 
     @Override
     public String toString() {
@@ -42,6 +66,11 @@ public class Product {
         return category;
     }
 
+    public void setId(Long id) {
+        this.id = id;
+    }
     // Сеттеры - чтобы можно было изменить цену или название
     public void setPrice(double price) { this.price = price; }
+
+
 }
