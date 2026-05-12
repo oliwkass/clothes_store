@@ -1,7 +1,9 @@
 package org.example.service;
 
 import jakarta.validation.Valid;
+import org.example.dto.ProductDTO;
 import org.example.model.Product;
+import org.modelmapper.ModelMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -11,10 +13,12 @@ import java.util.List;
 public class ProductController {
 
     private final StoreService storeService;
+    private final ModelMapper modelMapper;
 
     // Конструктор: Spring видит, что нужен StoreService, и сам его сюда подставит
-    public ProductController(StoreService storeService) {
+    public ProductController(StoreService storeService, ModelMapper modelMapper) {
         this.storeService = storeService;
+        this.modelMapper = modelMapper;
     }
 
     @GetMapping("/search")
@@ -29,9 +33,15 @@ public class ProductController {
     }
 
     @PostMapping("/add")
-    public ResponseEntity<?> addProduct(@Valid @RequestBody Product product) {
+    public ResponseEntity<ProductDTO> addProduct(@Valid @RequestBody ProductDTO productDTO) {
+        // 1. Превращаем DTO в Entity для базы
+        Product product = modelMapper.map(productDTO, Product.class);
+
+        // 2. Сохраняем
         storeService.addProduct(product);
-        return ResponseEntity.ok(product);
+
+        // 3. Возвращаем DTO обратно клиенту
+        return ResponseEntity.ok(modelMapper.map(product, ProductDTO.class));
     }
 
     @DeleteMapping("/delete/{id}")
