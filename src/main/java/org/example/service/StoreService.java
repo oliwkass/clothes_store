@@ -34,6 +34,14 @@ public class StoreService {
         return productRepository.findByCategoryIgnoreCase(category);
     }
 
+    public List<Product> searchByName(String name) {
+        return productRepository.findByNameContainingIgnoreCase(name);
+    }
+
+    public List<Product> findByPriceRange(Double min, Double max) {
+        return productRepository.findByPriceBetween(min, max);
+    }
+
     public boolean deleteProductById(Long id) {
         // Сначала проверяем существование
         boolean exists = productRepository.findAll().stream()

@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 public class ProductController {
@@ -22,8 +23,25 @@ public class ProductController {
     }
 
     @GetMapping("/search")
-    public List<Product> search(@RequestParam String category) {
-        return storeService.findByCategory(category);
+    public List<ProductDTO> searchProducts(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) Double minPrice,
+            @RequestParam(required = false) Double maxPrice) {
+
+        List<Product> results;
+
+        if (name != null) {
+            results = storeService.searchByName(name);
+        } else if (minPrice != null && maxPrice != null) {
+            results = storeService.findByPriceRange(minPrice, maxPrice);
+        } else {
+            results = storeService.getAllProducts();
+        }
+
+        // Превращаем результат в DTO перед отправкой
+        return results.stream()
+                .map(p -> modelMapper.map(p, ProductDTO.class))
+                .collect(Collectors.toList());
     }
 
 
