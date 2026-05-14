@@ -13,4 +13,6 @@ public class ProductDTO {
     private String category;
     private Double price;
     private String size;
+    private int stockQuantity;
+    private String color;
 }
