@@ -42,6 +42,19 @@ public class StoreService {
         return productRepository.findByPriceBetween(min, max);
     }
 
+    public Product updateProduct(Long id, Product details) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Product not found with id: " + id));
+
+        product.setName(details.getName());
+        product.setPrice(details.getPrice());
+        product.setCategory(details.getCategory());
+        product.setStockQuantity(details.getStockQuantity());
+        // и так далее для всех полей
+
+        return productRepository.save(product);
+    }
+
     public boolean deleteProductById(Long id) {
         // Сначала проверяем существование
         boolean exists = productRepository.findAll().stream()
