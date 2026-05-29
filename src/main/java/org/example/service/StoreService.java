@@ -1,37 +1,42 @@
 package org.example.service;
 
+import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
+import org.example.model.Category;
 import org.example.model.Product;
+import org.example.repository.CategoryRepository;
 import org.example.repository.ProductRepository;
 import org.springframework.stereotype.Service;
-import jakarta.annotation.PostConstruct;
+import org.example.repository.UserRepository;
 
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class StoreService {
 
-    // 1. Оставляем только репозиторий. Список products здесь больше не нужен!
     private final ProductRepository productRepository;
+    private final CategoryRepository categoryRepository;
+    private final org.example.repository.UserRepository userRepository;
 
 
-    // 2. Добавляем правильный конструктор для связи со Spring
-    public StoreService(ProductRepository productRepository) {
-        this.productRepository = productRepository;
+    // Один чистый конструктор для внедрения зависимостей
+
+    // Тот самый метод, который связывает Товар и Категорию
+    public Product addProduct(Product product, String categoryName) {
+        Category category = categoryRepository.findByName(categoryName)
+                .orElseGet(() -> {
+                    Category newCat = new Category();
+                    newCat.setName(categoryName);
+                    return categoryRepository.save(newCat);
+                });
+
+        product.setCategory(category);
+        return productRepository.save(product);
     }
 
     public List<Product> getAllProducts() {
-        // Теперь просим данные у репозитория
         return productRepository.findAll();
-    }
-
-    public void addProduct(Product product) {
-        Product savedProduct = productRepository.save(product);
-        System.out.println("Товар добавлен в базу с ID: " + savedProduct.getId());
-    }
-
-    public List<Product> findByCategory(String category) {
-        // Делегируем поиск репозиторию
-        return productRepository.findByCategoryIgnoreCase(category);
     }
 
     public List<Product> searchByName(String name) {
@@ -42,37 +47,44 @@ public class StoreService {
         return productRepository.findByPriceBetween(min, max);
     }
 
+    public List<Product> findByCategory(String category) {
+        // Вызываем обновленный метод репозитория
+        return productRepository.findByCategory_NameIgnoreCase(category);
+    }
+
     public Product updateProduct(Long id, Product details) {
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Product not found with id: " + id));
-
+                .orElseThrow(() -> new org.example.exception.ResourceNotFoundException("Product with ID " + id + " not found"));
         product.setName(details.getName());
         product.setPrice(details.getPrice());
-        product.setCategory(details.getCategory());
+        product.setCategory(details.getCategory()); // Устанавливаем объект Category
         product.setStockQuantity(details.getStockQuantity());
-        // и так далее для всех полей
+        product.setColor(details.getColor());
+        product.setSize(details.getSize());
 
         return productRepository.save(product);
     }
 
     public boolean deleteProductById(Long id) {
-        // Сначала проверяем существование
-        boolean exists = productRepository.findAll().stream()
-                .anyMatch(p -> p.getId().equals(id));
-
-        if (exists) {
+        if (productRepository.existsById(id)) {
             productRepository.deleteById(id);
-            System.out.println("✅ Товар с ID " + id + " успешно удален.");
             return true;
-        } else {
-            System.out.println("❌ Товар с ID " + id + " не найден.");
-            return false;
         }
+        return false;
     }
 
-    @PostConstruct
+    // ВНИМАНИЕ: initData временно закомментируем или поправим,
+    // так как старый конструктор Product(..., "Одежда", ...) больше не работает.
+
+    @jakarta.annotation.PostConstruct
     public void initData() {
-        addProduct(new Product(null, "Футболка", "Одежда", 1500.0, "L", 10, "Белый"));
-        addProduct(new Product(null, "Джинсы", "Одежда", 3500.0, "M", 5, "Синий"));
+        // Проверяем, если в базе еще нет пользователей, создаем одного тестового
+        if (userRepository.count() == 0) {
+            org.example.model.User testUser = new org.example.model.User();
+            testUser.setName("Тестовый Покупатель");
+            testUser.setEmail("test@vibe.com");
+            userRepository.save(testUser);
+            System.out.println("=== ТЕСТОВЫЙ ПОЛЬЗОВАТЕЛЬ СОЗДАН С ID = 1 ===");
+        }
     }
 }

@@ -18,4 +18,15 @@ public class GlobalExceptionHandler {
                 errors.put(error.getField(), error.getDefaultMessage()));
         return ResponseEntity.badRequest().body(errors);
     }
+
+    @org.springframework.web.bind.annotation.ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleResourceNotFound(ResourceNotFoundException ex) {
+        Map<String, Object> body = new java.util.HashMap<>();
+        body.put("timestamp", java.time.LocalDateTime.now());
+        body.put("status", org.springframework.http.HttpStatus.NOT_FOUND.value());
+        body.put("error", "Not Found");
+        body.put("message", ex.getMessage());
+
+        return new ResponseEntity<>(body, org.springframework.http.HttpStatus.NOT_FOUND);
+    }
 }

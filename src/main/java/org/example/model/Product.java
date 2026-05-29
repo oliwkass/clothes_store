@@ -29,7 +29,9 @@ public class Product {
     @PositiveOrZero(message = "Количество на складе не может быть отрицательным")
     private Integer stockQuantity;
 
-    private String category;  // Категория (Одежда, Обувь)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id") // В базе появится колонка со ссылкой на ID категории
+    private Category category;
     private String size;      // Размер (S, M, L, XL)
     private String color;      // Цвет товара
 
@@ -43,7 +45,7 @@ public class Product {
     }
 
     // Конструктор - нужен, чтобы создавать объект "одним махом"
-    public Product(Long id, String name, String category, double price, String size, int stockQuantity, String color) {
+    public Product(Long id, String name, Category category, double price, String size, int stockQuantity, String color) {
         this.id = id;
         this.name = name;
         this.category = category;
@@ -62,8 +64,8 @@ public class Product {
     }
     public Long getId(){return id;}
 
-    public String getCategory() {
-        return category;
+    public Category getCategory() {
+        return this.category;
     }
 
     public void setId(Long id) {

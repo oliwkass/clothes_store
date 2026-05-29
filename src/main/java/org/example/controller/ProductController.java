@@ -1,8 +1,9 @@
-package org.example.service;
+package org.example.controller;
 
 import jakarta.validation.Valid;
 import org.example.dto.ProductDTO;
 import org.example.model.Product;
+import org.example.service.StoreService;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -52,29 +53,23 @@ public class ProductController {
 
     @PutMapping("/{id}")
     public ResponseEntity<ProductDTO> updateProduct(@PathVariable Long id, @RequestBody ProductDTO productDTO) {
-        // 1. Превращаем DTO в Entity
+        // 1. Маппим DTO в сущность Product
         Product productEntity = modelMapper.map(productDTO, Product.class);
 
-        // 2. ВАЖНО: явно устанавливаем ID из пути, чтобы база знала, ЧТО обновлять
-        productEntity.setId(id);
-
-        // 3. Сохраняем обновленный товар
+        // 2. Сначала ищем или создаем категорию через наш StoreService, чтобы привязать её к продукту
         Product updatedProduct = storeService.updateProduct(id, productEntity);
 
-        // 4. Возвращаем результат обратно в виде DTO
         return ResponseEntity.ok(modelMapper.map(updatedProduct, ProductDTO.class));
     }
 
     @PostMapping("/add")
     public ResponseEntity<ProductDTO> addProduct(@Valid @RequestBody ProductDTO productDTO) {
-        // 1. Превращаем DTO в Entity для базы
         Product product = modelMapper.map(productDTO, Product.class);
 
-        // 2. Сохраняем
-        storeService.addProduct(product);
+        // Передаем ДВА параметра, как того требует новый метод в StoreService
+        Product savedProduct = storeService.addProduct(product, productDTO.getCategory());
 
-        // 3. Возвращаем DTO обратно клиенту
-        return ResponseEntity.ok(modelMapper.map(product, ProductDTO.class));
+        return ResponseEntity.ok(modelMapper.map(savedProduct, ProductDTO.class));
     }
 
     @DeleteMapping("/delete/{id}")

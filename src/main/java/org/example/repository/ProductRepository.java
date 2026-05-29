@@ -8,12 +8,12 @@ import java.util.List;
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
 
-    // Поиск по части имени (независимо от регистра)
+    // Ищет по имени продукта (содержит строку, игнорируя регистр)
     List<Product> findByNameContainingIgnoreCase(String name);
 
-    // Поиск товаров в диапазоне цен
-    List<Product> findByPriceBetween(Double minPrice, Double maxPrice);
+    // Правильный поиск по имени КАТЕГОРИИ внутри объекта Category!
+    List<Product> findByCategory_NameIgnoreCase(String categoryName);
 
-    List<Product> findByCategoryIgnoreCase(String category);
+    // Поиск по диапазону цен
+    List<Product> findByPriceBetween(Double min, Double max);
 }
-
