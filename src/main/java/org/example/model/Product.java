@@ -1,11 +1,13 @@
 package org.example.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Data
@@ -13,6 +15,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Entity // 1. Помечаем как сущность базы данных
 @Table(name = "products") // 2. Называем таблицу
+@Getter
 
 public class Product {
 
@@ -29,8 +32,10 @@ public class Product {
     @PositiveOrZero(message = "Количество на складе не может быть отрицательным")
     private Integer stockQuantity;
 
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id") // В базе появится колонка со ссылкой на ID категории
+    @JsonIgnoreProperties
     private Category category;
     private String size;      // Размер (S, M, L, XL)
     private String color;      // Цвет товара
@@ -59,7 +64,7 @@ public class Product {
     public String getName() {
         return name;
     }
-    public double getPrice() {
+    public Double getPrice() {
         return price;
     }
     public Long getId(){return id;}
