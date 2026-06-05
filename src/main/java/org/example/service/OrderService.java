@@ -24,41 +24,50 @@ public class OrderService {
 
 
     @org.springframework.transaction.annotation.Transactional
-    public Order createOrder(Long userId, List<Long> productIds) {
-        // 1. Ищем пользователя
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+    public Order createOrder(org.example.dto.OrderRequest request) {
+        // 1. Ищем пользователя по userId из DTO
+        User user = userRepository.findById(request.getUserId())
+                .orElseThrow(() -> new ResourceNotFoundException("User with ID " + request.getUserId() + " not found"));
 
-        // Сюда мы будем складывать купленные продукты (включая дубликаты!)
         List<Product> orderProducts = new ArrayList<>();
         double calculatedTotal = 0.0;
 
-        // 2. Обходим исходный список ID, который пришел от пользователя [2, 2, 2]
-        for (Long productId : productIds) {
-            // Ищем продукт в базе по конкретному ID
-            Product product = productRepository.findById(productId)
-                    .orElseThrow(() -> new ResourceNotFoundException("Product with ID " + productId + " not found"));
+        // 2. Обходим список позиций (items) из запроса
+        for (org.example.dto.OrderItemRequest item : request.getItems()) {
+            // Ищем продукт в базе
+            Product product = productRepository.findById(item.getProductId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Product with ID " + item.getProductId() + " not found"));
 
-            // Проверяем склад
-            if (product.getStockQuantity() == null || product.getStockQuantity() <= 0) {
-                throw new ResourceNotFoundException("Product '" + product.getName() + "' is out of stock!");
+            int requestedQuantity = item.getQuantity();
+
+            // Валидация: не пытается ли пользователь заказать 0 или отрицательное количество?
+            if (requestedQuantity <= 0) {
+                throw new IllegalArgumentException("Quantity for product '" + product.getName() + "' must be greater than 0");
             }
 
-            // Списываем строго 1 единицу для текущего ID из списка
-            product.setStockQuantity(product.getStockQuantity() - 1);
+            // Проверяем, хватает ли товара на складе для этого шага
+            if (product.getStockQuantity() == null || product.getStockQuantity() < requestedQuantity) {
+                throw new ResourceNotFoundException("Not enough stock for product '" + product.getName() +
+                        "'. Requested: " + requestedQuantity + ", Available: " + product.getStockQuantity());
+            }
 
-            // Добавляем цену к общему чеку
-            calculatedTotal += product.getPrice();
+            // Списываем нужное количество со склада сразу
+            product.setStockQuantity(product.getStockQuantity() - requestedQuantity);
 
-            // Кладем продукт в наш итоговый список для заказа
-            orderProducts.add(product);
+            // Считаем общую стоимость: цена продукта * количество штук
+            calculatedTotal += product.getPrice() * requestedQuantity;
+
+            // Добавляем продукт в список заказа столько раз, сколько его купили (чтобы сохранить связь в БД)
+            for (int i = 0; i < requestedQuantity; i++) {
+                orderProducts.add(product);
+            }
         }
 
-        // 3. Создаем и сохраняем заказ
+        // 3. Формируем и сохраняем заказ
         Order order = new Order();
         order.setUser(user);
-        order.setProducts(orderProducts); // Теперь здесь будут лежать все 3 куртки!
-        order.setOrderDate(LocalDateTime.now());
+        order.setProducts(orderProducts);
+        order.setOrderDate(java.time.LocalDateTime.now());
         order.setStatus("CREATED");
         order.setTotalPrice(calculatedTotal);
 

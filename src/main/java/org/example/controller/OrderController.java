@@ -17,12 +17,11 @@ public class OrderController {
     private final OrderService orderService;
 
     // POST-запрос для оформления заказа
+// POST-запрос для оформления заказа через JSON Body
     @PostMapping
-    public ResponseEntity<Order> createOrder(
-            @RequestParam Long userId,
-            @RequestParam List<Long> productIds) {
-
-        Order newOrder = orderService.createOrder(userId, productIds);
+    public ResponseEntity<Order> createOrder(@RequestBody org.example.dto.OrderRequest request) {
+        // Передаем весь объект запроса в сервис
+        Order newOrder = orderService.createOrder(request);
         return new ResponseEntity<>(newOrder, HttpStatus.CREATED);
     }
 }
