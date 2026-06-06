@@ -1,6 +1,7 @@
 package org.example.service;
 
 import lombok.RequiredArgsConstructor;
+import org.example.exception.InsufficientStockException;
 import org.example.exception.ResourceNotFoundException;
 import org.example.model.Order;
 import org.example.model.Product;
@@ -40,14 +41,14 @@ public class OrderService {
 
             int requestedQuantity = item.getQuantity();
 
-            // Валидация: не пытается ли пользователь заказать 0 или отрицательное количество?
+            // Если прислали 0 или минус — это некорректный запрос (Bad Request)
             if (requestedQuantity <= 0) {
                 throw new IllegalArgumentException("Quantity for product '" + product.getName() + "' must be greater than 0");
             }
 
-            // Проверяем, хватает ли товара на складе для этого шага
+            // Если товара мало — выбрасываем наше новое исключение
             if (product.getStockQuantity() == null || product.getStockQuantity() < requestedQuantity) {
-                throw new ResourceNotFoundException("Not enough stock for product '" + product.getName() +
+                throw new InsufficientStockException("Not enough stock for product '" + product.getName() +
                         "'. Requested: " + requestedQuantity + ", Available: " + product.getStockQuantity());
             }
 

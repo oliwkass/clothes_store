@@ -19,6 +19,18 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(errors);
     }
 
+
+    @org.springframework.web.bind.annotation.ExceptionHandler(InsufficientStockException.class)
+    public ResponseEntity<Map<String, Object>> handleInsufficientStock(InsufficientStockException ex) {
+        Map<String, Object> body = new java.util.HashMap<>();
+        body.put("timestamp", java.time.LocalDateTime.now());
+        body.put("status", org.springframework.http.HttpStatus.BAD_REQUEST.value()); // 400
+        body.put("error", "Bad Request");
+        body.put("message", ex.getMessage());
+
+        return new ResponseEntity<>(body, org.springframework.http.HttpStatus.BAD_REQUEST);
+    }
+
     @org.springframework.web.bind.annotation.ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<Map<String, Object>> handleResourceNotFound(ResourceNotFoundException ex) {
         Map<String, Object> body = new java.util.HashMap<>();
