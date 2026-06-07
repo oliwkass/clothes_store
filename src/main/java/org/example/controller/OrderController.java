@@ -1,5 +1,6 @@
 package org.example.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.model.Order;
 import org.example.service.OrderService;
@@ -19,7 +20,7 @@ public class OrderController {
     // POST-запрос для оформления заказа
 // POST-запрос для оформления заказа через JSON Body
     @PostMapping
-    public ResponseEntity<Order> createOrder(@RequestBody org.example.dto.OrderRequest request) {
+    public ResponseEntity<Order> createOrder(@Valid @RequestBody org.example.dto.OrderRequest request) {
         // Передаем весь объект запроса в сервис
         Order newOrder = orderService.createOrder(request);
         return new ResponseEntity<>(newOrder, HttpStatus.CREATED);

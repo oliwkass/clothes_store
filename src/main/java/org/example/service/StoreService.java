@@ -87,4 +87,14 @@ public class StoreService {
             System.out.println("=== ТЕСТОВЫЙ ПОЛЬЗОВАТЕЛЬ СОЗДАН С ID = 1 ===");
         }
     }
+
+    public List<Product> getProductsByFilter(String name, Double minPrice, Double maxPrice) {
+        if (name != null && !name.trim().isEmpty()) {
+            return searchByName(name);
+        } else if (minPrice != null && maxPrice != null) {
+            return findByPriceRange(minPrice, maxPrice);
+        } else {
+            return getAllProducts();
+        }
+    }
 }

@@ -5,6 +5,7 @@ import org.example.dto.ProductDTO;
 import org.example.model.Product;
 import org.example.service.StoreService;
 import org.modelmapper.ModelMapper;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,64 +13,51 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
+@RequestMapping("/api/products")
 public class ProductController {
 
     private final StoreService storeService;
     private final ModelMapper modelMapper;
 
-    // Конструктор: Spring видит, что нужен StoreService, и сам его сюда подставит
     public ProductController(StoreService storeService, ModelMapper modelMapper) {
         this.storeService = storeService;
         this.modelMapper = modelMapper;
     }
 
+    // 1. Объединенный и чистый поиск
     @GetMapping("/search")
     public List<ProductDTO> searchProducts(
             @RequestParam(required = false) String name,
             @RequestParam(required = false) Double minPrice,
             @RequestParam(required = false) Double maxPrice) {
 
-        List<Product> results;
+        // Контроллер просто делегирует задачу сервису
+        List<Product> results = storeService.getProductsByFilter(name, minPrice, maxPrice);
 
-        if (name != null) {
-            results = storeService.searchByName(name);
-        } else if (minPrice != null && maxPrice != null) {
-            results = storeService.findByPriceRange(minPrice, maxPrice);
-        } else {
-            results = storeService.getAllProducts();
-        }
-
-        // Превращаем результат в DTO перед отправкой
         return results.stream()
                 .map(p -> modelMapper.map(p, ProductDTO.class))
                 .collect(Collectors.toList());
     }
 
-
-    @GetMapping("/all")
-    public List<Product> getAll() {
-        return storeService.getAllProducts();
-    }
-
+    // 2. Добавили @Valid для защиты при обновлении
     @PutMapping("/{id}")
-    public ResponseEntity<ProductDTO> updateProduct(@PathVariable Long id, @RequestBody ProductDTO productDTO) {
-        // 1. Маппим DTO в сущность Product
-        Product productEntity = modelMapper.map(productDTO, Product.class);
+    public ResponseEntity<ProductDTO> updateProduct(
+            @PathVariable Long id,
+            @Valid @RequestBody ProductDTO productDTO) {
 
-        // 2. Сначала ищем или создаем категорию через наш StoreService, чтобы привязать её к продукту
+        Product productEntity = modelMapper.map(productDTO, Product.class);
         Product updatedProduct = storeService.updateProduct(id, productEntity);
 
         return ResponseEntity.ok(modelMapper.map(updatedProduct, ProductDTO.class));
     }
 
+    // 3. Добавление с правильным статус-кодом 201 Created
     @PostMapping("/add")
     public ResponseEntity<ProductDTO> addProduct(@Valid @RequestBody ProductDTO productDTO) {
         Product product = modelMapper.map(productDTO, Product.class);
-
-        // Передаем ДВА параметра, как того требует новый метод в StoreService
         Product savedProduct = storeService.addProduct(product, productDTO.getCategory());
 
-        return ResponseEntity.ok(modelMapper.map(savedProduct, ProductDTO.class));
+        return new ResponseEntity<>(modelMapper.map(savedProduct, ProductDTO.class), HttpStatus.CREATED);
     }
 
     @DeleteMapping("/delete/{id}")
@@ -79,7 +67,7 @@ public class ProductController {
         if (deleted) {
             return ResponseEntity.ok("✅ Товар успешно удален");
         } else {
-            return ResponseEntity.status(404).body("❌ Ошибка: Товар с ID " + id + " не существует");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("❌ Ошибка: Товар с ID " + id + " не существует");
         }
     }
 }
