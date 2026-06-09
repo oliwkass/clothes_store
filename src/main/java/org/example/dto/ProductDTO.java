@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.example.model.Category;
 
 @Data
 @NoArgsConstructor
@@ -24,5 +25,5 @@ public class ProductDTO {
 
     private String size;
     private String color;
-    private String category;
+    private CategoryDTO category;
 }

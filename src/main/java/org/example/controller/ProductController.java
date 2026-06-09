@@ -55,7 +55,7 @@ public class ProductController {
     @PostMapping("/add")
     public ResponseEntity<ProductDTO> addProduct(@Valid @RequestBody ProductDTO productDTO) {
         Product product = modelMapper.map(productDTO, Product.class);
-        Product savedProduct = storeService.addProduct(product, productDTO.getCategory());
+        Product savedProduct = storeService.addProduct(product, productDTO.getCategory().getName());
 
         return new ResponseEntity<>(modelMapper.map(savedProduct, ProductDTO.class), HttpStatus.CREATED);
     }
